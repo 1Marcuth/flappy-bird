@@ -8,6 +8,8 @@ const sounds = {
     point: new Audio("assets/sounds/point.wav")
 }
 
+const globals = {}
+
 const canvas = document.querySelector("canvas")
 const context = canvas.getContext("2d")
 let frames = 0
@@ -46,11 +48,11 @@ function createBird() {
         update() {
             if (collide(bird, globals.floor)) {
                 sounds.hit.play()
-                return changeScreen(screens.initial)
+                return changeScreen(screens.over)
             }
     
             bird.speed += bird.gravityForce
-            bird.y += bird.speed 
+            bird.y += bird.speed
         },
         draw() {
             bird.updateCurrentFrame()
@@ -69,6 +71,7 @@ function createBird() {
             )
         },
         jump() {
+            sounds.jump.play()
             bird.speed =- bird.jumpForce
         }
     }
@@ -151,8 +154,8 @@ function createPipes() {
                     pipes.height,
                 )
     
-                const pipeBottonX = pair.x
-                const pipeBottonY = pipes.height + pipeSpacing + pipeTopY
+                const pipeBottomX = pair.x
+                const pipeBottomY = pipes.height + pipeSpacing + pipeTopY
     
                 context.drawImage(
                     sprites,
@@ -160,11 +163,21 @@ function createPipes() {
                     pipes.floor.spriteY,
                     pipes.width,
                     pipes.height,
-                    pipeBottonX,
-                    pipeBottonY,
+                    pipeBottomX,
+                    pipeBottomY,
                     pipes.width,
                     pipes.height,
                 )
+
+                pair.pipeTop = {
+                    x: pipeTopX,
+                    y: pipes.height + pipeTopY
+                }
+    
+                pair.pipeBottom = {
+                    x: pipeBottomX,
+                    y: pipeBottomY
+                }
             })
         },
         pairs: [],
@@ -172,17 +185,9 @@ function createPipes() {
             if (globals.bird.x >= pair.x) {
                 const birdHead = globals.bird.y
                 const birdFoot = globals.bird.y + globals.bird.height
-                const pipeTopY = pair.y + pipes.height
-                const pipeBottomY = pair.y
 
-                console.log(globals.bird.y + globals.bird.height)
-
-                console.log(birdHead <= pipeTopY)
-                console.log(birdFoot >= pipeBottomY)
-                console.log(`Bird foot: ${birdFoot} >= Pipe bottom: ${pipeBottomY}`)
-
-                if (birdHead <= pipeTopY) return true
-                if (birdFoot >= pipeBottomY) return true
+                if (birdHead <= pair.pipeTop.y) return true
+                if (birdFoot >= pair.pipeBottom.y) return true
             }
 
             return false
@@ -201,8 +206,8 @@ function createPipes() {
                 pair.x -= 2
 
                 if (pipes.collide(pair)) {
-                    console.log(pair)
-                    //changeScreen(screens.initial)
+                    sounds.hit.play()
+                    return changeScreen(screens.over)
                 }
 
                 if (pair.x + pipes.width <= 0) {
@@ -225,10 +230,14 @@ function createScoreboard() {
             context.fillText(`${scoreboard.score}`, canvas.width - 35, 35)
         },
         update() {
-            const framesInterval = 100
-            
-            if (frames % framesInterval === 0) {
-                scoreboard.score += 1
+            console.log(frames)
+            if (frames > 50) {
+                const framesInterval = 100
+                
+                if ((frames + 50) % framesInterval === 0) {
+                    scoreboard.score += 1
+                    sounds.point.play()
+                }
             }
         }
     }
@@ -295,7 +304,27 @@ const initialScreen = {
     }
 }
 
-const globals = {}
+const gameOverScreen = {
+    spriteX: 134,
+    spriteY: 153,
+    width: 226,
+    height: 200,
+    x: (canvas.width / 2) - (226 / 2),
+    y: 50,
+    draw() {
+        context.drawImage(
+            sprites,
+            gameOverScreen.spriteX,
+            gameOverScreen.spriteY,
+            gameOverScreen.width,
+            gameOverScreen.height,
+            gameOverScreen.x,
+            gameOverScreen.y,
+            gameOverScreen.width,
+            gameOverScreen.height,
+        )
+    }
+}
 
 const screens = {
     initial: {
@@ -318,6 +347,7 @@ const screens = {
     },
     game: {
         initialize() {
+            frames = 0
             globals.pipes = createPipes()
             globals.scoreboard = createScoreboard()
         },
@@ -336,6 +366,15 @@ const screens = {
         },
         click() {
             globals.bird.jump()
+        }
+    },
+    over: {
+        draw() {
+            gameOverScreen.draw()
+        },
+        update() {},
+        click() {
+            changeScreen(screens.initial)
         }
     }
 }
