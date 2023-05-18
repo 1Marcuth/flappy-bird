@@ -182,7 +182,7 @@ function createPipes() {
         },
         pairs: [],
         collide(pair) {
-            if (globals.bird.x >= pair.x) {
+            if ((globals.bird.x + globals.bird.width) >= pair.x) {
                 const birdHead = globals.bird.y
                 const birdFoot = globals.bird.y + globals.bird.height
 
@@ -230,7 +230,6 @@ function createScoreboard() {
             context.fillText(`${scoreboard.score}`, canvas.width - 35, 35)
         },
         update() {
-            console.log(frames)
             if (frames > 50) {
                 const framesInterval = 100
                 
@@ -384,7 +383,6 @@ activeScreen.initialize()
 
 function changeScreen(newScreen) {
     activeScreen = newScreen
-
     if (activeScreen.initialize) activeScreen.initialize()
 }
 
@@ -394,12 +392,11 @@ function loop() {
     frames += 1
 }
 
-window.addEventListener("click", (event) => {
+canvas.addEventListener("click", (event) => {
     if (activeScreen.click) activeScreen.click()
 })
 
 window.addEventListener("keyup", (event) => {
-    event.preventDefault()
     if (event.key !== " ") return
     if (activeScreen.click) activeScreen.click()
 })
