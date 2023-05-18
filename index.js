@@ -24,7 +24,7 @@ function createBird() {
         height: 24,
         x: 10,
         y: 50,
-        gravityForce: 0.12, // 0.25,
+        gravityForce: 0.25, // 0.12,
         jumpForce: 4.6,
         speed: 0,
         movements: [
@@ -136,8 +136,8 @@ function createPipes() {
         draw() {
             pipes.pairs.forEach(pair => {
                 const pipeSpacing = 90
-                const pipeSkyX = pair.x
-                const pipeSkyY = pair.y
+                const pipeTopX = pair.x
+                const pipeTopY = pair.y
 
                 context.drawImage(
                     sprites,
@@ -145,14 +145,14 @@ function createPipes() {
                     pipes.sky.spriteY,
                     pipes.width,
                     pipes.height,
-                    pipeSkyX,
-                    pipeSkyY,
+                    pipeTopX,
+                    pipeTopY,
                     pipes.width,
                     pipes.height,
                 )
     
-                const pipeFloorX = pair.x
-                const pipeFloorY = pipes.height + pipeSpacing + pipeSkyY
+                const pipeBottonX = pair.x
+                const pipeBottonY = pipes.height + pipeSpacing + pipeTopY
     
                 context.drawImage(
                     sprites,
@@ -160,16 +160,35 @@ function createPipes() {
                     pipes.floor.spriteY,
                     pipes.width,
                     pipes.height,
-                    pipeFloorX,
-                    pipeFloorY,
+                    pipeBottonX,
+                    pipeBottonY,
                     pipes.width,
                     pipes.height,
                 )
             })
         },
         pairs: [],
+        collide(pair) {
+            if (globals.bird.x >= pair.x) {
+                const birdHead = globals.bird.y
+                const birdFoot = globals.bird.y + globals.bird.height
+                const pipeTopY = pair.y + pipes.height
+                const pipeBottomY = pair.y
+
+                console.log(globals.bird.y + globals.bird.height)
+
+                console.log(birdHead <= pipeTopY)
+                console.log(birdFoot >= pipeBottomY)
+                console.log(`Bird foot: ${birdFoot} >= Pipe bottom: ${pipeBottomY}`)
+
+                if (birdHead <= pipeTopY) return true
+                if (birdFoot >= pipeBottomY) return true
+            }
+
+            return false
+        },
         update() {
-            if (frames % 200 === 0) {
+            if (frames % 100 === 0) {
                 pipes.pairs.push({
                     x: canvas.width,
                     y: Math.floor(
@@ -181,19 +200,40 @@ function createPipes() {
             pipes.pairs.forEach(pair => {
                 pair.x -= 2
 
-                if (collide(globals.bird, pipes)) {
-                    
+                if (pipes.collide(pair)) {
+                    console.log(pair)
+                    //changeScreen(screens.initial)
                 }
 
                 if (pair.x + pipes.width <= 0) {
                     pipes.pairs.shift()
                 }
-            
             })
         }
     }
 
     return pipes
+}
+
+function createScoreboard() {
+    const scoreboard = {
+        score: 0,
+        draw() {
+            context.font = "35px VT323"
+            context.textAlign = "right"
+            context.fillStyle = "#fff"
+            context.fillText(`${scoreboard.score}`, canvas.width - 35, 35)
+        },
+        update() {
+            const framesInterval = 100
+            
+            if (frames % framesInterval === 0) {
+                scoreboard.score += 1
+            }
+        }
+    }
+
+    return scoreboard
 }
 
 const background = {
@@ -262,33 +302,37 @@ const screens = {
         initialize() {
             globals.bird = createBird()
             globals.floor = createFloor()
-            globals.pipes = createPipes()
         },
         draw() {
             background.draw()
-            globals.pipes.draw()
             globals.floor.draw()
             globals.bird.draw()
-            // globals.pipes.draw()
-            //initialScreen.draw()
+            initialScreen.draw()
         },
         update() {
             globals.floor.update()
-            globals.pipes.update()
         },
         click() {
             changeScreen(screens.game)
         }
     },
     game: {
+        initialize() {
+            globals.pipes = createPipes()
+            globals.scoreboard = createScoreboard()
+        },
         draw() {
             background.draw()
+            globals.pipes.draw()
             globals.floor.draw()
             globals.bird.draw()
+            globals.scoreboard.draw()
         },
         update() {
             globals.bird.update()
             globals.floor.update()
+            globals.pipes.update()
+            globals.scoreboard.update()
         },
         click() {
             globals.bird.jump()
@@ -309,8 +353,6 @@ function loop() {
     activeScreen.draw()
     activeScreen.update()
     frames += 1
-
-    requestAnimationFrame(loop)
 }
 
 window.addEventListener("click", (event) => {
@@ -323,4 +365,4 @@ window.addEventListener("keyup", (event) => {
     if (activeScreen.click) activeScreen.click()
 })
 
-loop()
+setInterval(loop, 16)
