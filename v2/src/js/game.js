@@ -125,8 +125,6 @@ function createGame(context, sourceImage, sounds) {
         setInterval(runFrame, interval)
     }
 
-    console.log(loadLocalStorage())
-
     context.canvas.addEventListener("click", clickInCanvas)
 
     return {
