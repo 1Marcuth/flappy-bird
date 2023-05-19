@@ -1,5 +1,5 @@
 const sprites = new Image()
-sprites.src = "/assets/images/sprites.png"
+sprites.src = "https://1marcuth.github.io/assets/images/sprites.png"
 
 const sounds = {
     fall: new Audio("https://1marcuth.github.io/flappy-bird/assets/sounds/fall.wav"),
