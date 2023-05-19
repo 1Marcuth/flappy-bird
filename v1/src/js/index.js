@@ -47,6 +47,7 @@ function createBird() {
         },
         update() {
             if (collide(bird, globals.floor)) {
+                sounds.fall.play()
                 sounds.hit.play()
                 return changeScreen(screens.over)
             }
