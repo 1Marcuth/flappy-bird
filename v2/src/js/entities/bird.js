@@ -30,6 +30,7 @@ function createBird(state, observer) {
         },
         update() {  
             if (this.collide()) {
+                state.sounds.fall.play()
                 state.sounds.hit.play()
                 return observer({ type: "bird-collided-into-floor" })
             }
