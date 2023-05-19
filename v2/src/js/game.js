@@ -10,24 +10,10 @@ import {
     createInitialScreen,
     screens
 } from "./screens.js"
-
-function setLocalStorage(data) {
-    for (const itemKey in data) {
-        localStorage.setItem(itemKey, JSON.stringify(data[itemKey]))
-    }
-}
-
-function loadLocalStorage() {
-    const data = {}
-
-    for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i)
-        const value = JSON.parse(localStorage.getItem(key))
-        data[key] = value
-    }
-    
-    return data
-}
+import {
+    setLocalStorage,
+    loadLocalStorage
+} from "./utils.js"
 
 function createGame(context, sourceImage, sounds) {
     const state = {
@@ -107,13 +93,32 @@ function createGame(context, sourceImage, sounds) {
     function gameObserver(command) {
         const eventType = command.type
 
-        switch (eventType) {
-            case "bird-collided-into-pipe":
-                return changeScreen(screens.over)
+        const acceptedEvents = {
+            "bird-collided-into-pipe": () => {
+                const { bestScore } = loadLocalStorage()
+                const score = state.scoreboard.score
 
-            case "bird-collided-into-floor":
+                if (score > bestScore) {
+                    setLocalStorage({ bestScore: score })
+                }
+
                 return changeScreen(screens.over)
+            },
+            "bird-collided-into-floor": () => {
+                const { bestScore } = loadLocalStorage()
+                const score = state.scoreboard.score
+
+                if (score > bestScore) {
+                    setLocalStorage({ bestScore: score })
+                }
+
+                return changeScreen(screens.over)
+            }
         }
+
+        const eventFunction = acceptedEvents[eventType]
+
+        eventFunction()
     }
 
     function run(interval) {
